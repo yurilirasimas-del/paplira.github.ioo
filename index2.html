@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="pt" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAP Yuri Lira | Alimentador Automático Inteligente para Animais</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        },
+                        epave: {
+                            blue: '#004b87',
+                            gold: '#f59e0b',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    keyframes: {
+                        spinSlow: {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.4' },
+                            '50%': { opacity: '0.8' },
+                        }
+                    },
+                    animation: {
+                        'spin-slow': 'spinSlow 2s linear infinite',
+                        'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Inter e JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .lcd-display {
+            background-color: #002b80;
+            color: #00ffff;
+            font-family: 'JetBrains Mono', monospace;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.7);
+            letter-spacing: 0.1em;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+        }
+        .dark .glass {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 min-h-screen flex flex-col antialiased">
+
+    <!-- CABEÇALHO / NAVEGAÇÃO -->
+    <header class="sticky top-0 z-50 glass border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Branding EPAVE / Aluno -->
+            <a href="#inicio" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 via-indigo-600 to-sky-500 flex items-center justify-center text-white font-black text-lg shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                    PAP
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold text-sm sm:text-base tracking-tight text-slate-900 dark:text-white leading-tight">
+                        EPAVE <span class="text-blue-600 dark:text-blue-400">• Yuri Lira N.º 3</span>
+                    </span>
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Técnico de Eletrónica, Automação e Computadores</span>
+                </div>
+            </a>
+
+            <!-- Links de Navegação -->
+            <div class="hidden lg:flex items-center space-x-6 text-sm font-medium">
+                <a href="#inicio" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Visão Geral</a>
+                <a href="#simulador" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Simulador IoT</a>
+                <a href="#objetivos" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Objetivos</a>
+                <a href="#materiais" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Hardware & Materiais</a>
+                <a href="#cronograma" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Calendarização</a>
+            </div>
+
+            <!-- Alternador de Tema & Ação rápida -->
+            <div class="flex items-center gap-3">
+                <button id="theme-toggle" aria-label="Alternar Tema" class="p-2.5 rounded-xl bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300/60 dark:hover:bg-slate-700 transition-colors">
+                    <svg id="sun-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    <svg id="moon-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                </button>
+
+                <a href="#simulador" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-500/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Testar Simulador
+                </a>
+
+                <!-- Botão Menu Mobile -->
+                <button id="mobile-menu-btn" class="lg:hidden p-2.5 rounded-xl bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Menu Mobile -->
+        <div id="mobile-menu" class="hidden lg:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-3 pb-6 space-y-3">
+            <a href="#inicio" class="block px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800">Visão Geral</a>
+            <a href="#simulador" class="block px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800">Simulador IoT</a>
+            <a href="#objetivos" class="block px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800">Objetivos</a>
+            <a href="#materiais" class="block px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800">Hardware & Materiais</a>
+            <a href="#cronograma" class="block px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800">Calendarização</a>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section id="inicio" class="relative overflow-hidden pt-10 pb-16 lg:pt-16 lg:pb-24">
+        <!-- Efeitos de iluminação de fundo -->
+        <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-blue-500/20 via-indigo-500/10 to-sky-400/20 rounded-full blur-3xl pointer-events-none -z-10 animate-pulse-glow"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Coluna de Conteúdo Escrito -->
+                <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800/80 text-blue-700 dark:text-blue-300 text-xs font-semibold uppercase tracking-wider">
+                        <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                        EPAVE • Prova de Aptidão Profissional (2024/2027)
+                    </div>
+
+                    <h1 class="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.15]">
+                        Sistema Automático de Alimentação para Animais Domésticos com <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 bg-clip-text text-transparent">Controlo Inteligente</span>
+                    </h1>
+
+                    <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                        Um alimentador automatizado para cães e gatos com dosagem precisa via fuso helicoidal, monitorização de reservatório e prato (sensores ultrassónico e célula de carga) e controlo remoto por aplicação web/mobile integrada no microcontrolador ESP32.
+                    </p>
+
+                    <!-- Ficha Técnica do Projeto (Aluno, Orientador, Escola) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div class="flex items-start gap-3">
+                            <div class="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            </div>
+                            <div>
+                                <span class="text-xs text-slate-500 dark:text-slate-400 block font-medium">Aluno Executante</span>
+                                <span class="text-sm font-bold text-slate-900 dark:text-white">Yuri Lira (N.º 3)</span>
+                                <span class="text-[11px] text-slate-500 block">Turma 2.º C • Eletrónica</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.6 15.12a2 2 0 00-1.144.12l-1.306.653A2 2 0 002 17.684V19a2 2 0 002 2h16a2 2 0 002-2v-1.316a2 2 0 00-.572-1.414l-2-2zM12 11a4 4 0 100-8 4 4 0 000 8z"></path></svg>
+                            </div>
+                            <div>
+                                <span class="text-xs text-slate-500 dark:text-slate-400 block font-medium">Orientador Técnico</span>
+                                <span class="text-sm font-bold text-slate-900 dark:text-white">Eng.º Ismael Fernandes</span>
+                                <span class="text-[11px] text-slate-500 block">EPAVE • Póvoa de Lanhoso</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Métricas de Orçamento / Local -->
+                    <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-100/70 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
+                            💰 Orçamento Estimado: 80€ a 180€
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                            📍 Póvoa de Lanhoso (29/04/2026)
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Coluna de Imagem / Visual Ilustrativo do Anteprojeto -->
+                <div class="lg:col-span-5">
+                    <div class="relative group">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+                        
+                        <div class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-3xl shadow-2xl">
+                            <!-- Imagem solicitada com componentes -->
+                            <img src="image_generation_content/8183492738871381925" alt="Componentes Eletrónicos e Mecânicos da PAP - ESP32, NEMA 17, LCD 16x2, Célula de Carga, Sensor Ultrassónico, Tubo PVC e Broca Helicoidal" class="w-full h-auto rounded-2xl object-cover shadow-inner" />
+                            
+                            <!-- Legenda Ilustrativa -->
+                            <div class="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-xl mt-3 border border-slate-200/60 dark:border-slate-700/60">
+                                <p class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Bancada de Componentes da PAP
+                                </p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug">
+                                    Visão esquemática dos materiais: ESP32, Motor de Passo NEMA 17, Driver A4988, LCD 16x2 I2C, Sensor HC-SR04, Célula de Carga com HX711, Tubo PVC e Fuso helicoidal de jardim.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SIMULADOR INTERATIVO IOT & CONTROL PANEL -->
+    <section id="simulador" class="py-16 bg-slate-100 dark:bg-slate-900/60 border-y border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12 space-y-3">
+                <span class="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">Demonstração Interativa</span>
+                <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white">Simulador em Tempo Real do Alimentador IoT</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm">
+                    Experimente o comportamento interativo entre o microcontrolador ESP32, o visor LCD 16x2, os sensores e o motor de passo NEMA 17.
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Painel Esquerdo: Ecrã LCD 16x2 Virtual & Motor Status -->
+                <div class="lg:col-span-5 space-y-6">
+                    <!-- Visor LCD 16x2 Simulado -->
+                    <div class="p-6 rounded-2xl bg-slate-800 border-4 border-slate-700 shadow-2xl space-y-3">
+                        <div class="flex items-center justify-between text-xs text-slate-400 font-mono">
+                            <span>INTERFACE LCD 16x2 I2C</span>
+                            <span class="flex items-center gap-1 text-emerald-400">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                                ESP32 ONLINE
+                            </span>
+                        </div>
+                        
+                        <!-- Caixa Azul Backlit -->
+                        <div class="lcd-display p-4 rounded-xl border border-blue-400/40 text-center space-y-1 select-none">
+                            <div id="lcd-line1" class="text-base sm:text-lg font-bold tracking-widest">NEXUS PET: PRONTO</div>
+                            <div id="lcd-line2" class="text-xs sm:text-sm text-cyan-200 tracking-wider">RES: 85% | 140g</div>
+                        </div>
+
+                        <div class="text-[11px] text-slate-400 text-center font-mono">
+                            Endereço I2C: <span class="text-amber-400">0x27</span> • Baudrate: <span class="text-amber-400">115200 bps</span>
+                        </div>
+                    </div>
+
+                    <!-- Animação do Motor de Passo NEMA 17 / Fuso Helicoidal -->
+                    <div class="p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-5">
+                        <div id="motor-spinner" class="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 transition-all">
+                            <!-- Ícone Engrenagem / Fuso -->
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block uppercase">Atuador Mecânico</span>
+                            <span id="motor-status-text" class="text-sm font-bold text-slate-900 dark:text-white block">NEMA 17 + Driver A4988: Parado</span>
+                            <span class="text-[11px] text-slate-500 block">Giro da broca helicoidal de jardim para avanço da ração</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Painel Direito: Controlos do Utilizador & Sensores Simulados -->
+                <div class="lg:col-span-7 bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md space-y-6">
+                    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-4">
+                        <h3 class="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-blue-600"></span>
+                            Painel de Controlo Remoto (App Web/Mobile)
+                        </h3>
+                        <span class="text-xs bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-full font-medium">ESP32 Wi-Fi</span>
+                    </div>
+
+                    <!-- Slider 1: Sensor Ultrassónico (Nível Reservatório) -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm font-medium">
+                            <label for="sensor-level" class="text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                📡 Sensor Ultrassónico HC-SR04 (Nível de Ração)
+                            </label>
+                            <span id="level-val" class="font-bold text-blue-600 dark:text-blue-400">85% (17 cm)</span>
+                        </div>
+                        <input type="range" id="sensor-level" min="0" max="100" value="85" class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    </div>
+
+                    <!-- Slider 2: Célula de Carga + HX711 (Peso no Prato) -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm font-medium">
+                            <label for="sensor-weight" class="text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                ⚖️ Célula de Carga 5kg + HX711 (Peso no Prato)
+                            </label>
+                            <span id="weight-val" class="font-bold text-purple-600 dark:text-purple-400">140 gramas</span>
+                        </div>
+                        <input type="range" id="sensor-weight" min="0" max="500" value="140" class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-600">
+                    </div>
+
+                    <!-- Botão de Disparo da Ração -->
+                    <div class="pt-2">
+                        <button id="btn-feed-now" class="w-full py-3.5 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-98 transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            Dispensar Dose de Ração Agora (+40g)
+                        </button>
+                    </div>
+
+                    <!-- Horários Programados -->
+                    <div class="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
+                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Horários de Alimentação Automatizados</span>
+                        <div class="grid grid-cols-3 gap-3 text-center">
+                            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                <span class="text-xs text-slate-500 block">Manhã</span>
+                                <span class="font-bold text-slate-800 dark:text-white text-sm">08:00</span>
+                                <span class="text-[10px] text-blue-600 dark:text-blue-400 block font-semibold">80g • Ativo</span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                <span class="text-xs text-slate-500 block">Tarde</span>
+                                <span class="font-bold text-slate-800 dark:text-white text-sm">13:30</span>
+                                <span class="text-[10px] text-blue-600 dark:text-blue-400 block font-semibold">60g • Ativo</span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                <span class="text-xs text-slate-500 block">Noite</span>
+                                <span class="font-bold text-slate-800 dark:text-white text-sm">20:00</span>
+                                <span class="text-[10px] text-blue-600 dark:text-blue-400 block font-semibold">80g • Ativo</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- OBJETIVOS & METODOLOGIA DA PAP -->
+    <section id="objetivos" class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+            
+            <!-- Objetivos -->
+            <div>
+                <div class="text-center max-w-3xl mx-auto mb-12 space-y-3">
+                    <span class="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">Metas do Anteprojeto</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white">Objetivos Gerais e Específicos</h2>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">01</div>
+                        <h3 class="font-bold text-lg text-slate-900 dark:text-white">Dispositivo Mecânico</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">Projetar e construir a estrutura de armazenamento em PVC e o fuso helicoidal para transporte preciso da ração.</p>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">02</div>
+                        <h3 class="font-bold text-lg text-slate-900 dark:text-white">Sensores & ESP32</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">Integrar sensor ultrassónico HC-SR04 para nivelamento e célula de carga com HX711 para controlo exato de peso.</p>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                        <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">03</div>
+                        <h3 class="font-bold text-lg text-slate-900 dark:text-white">Aplicação & Wi-Fi</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">Desenvolver interface mobile/web permitindo programação remota de horários, dosagem manual e alarme de nível baixo.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metodologia (8 Passos) -->
+            <div class="pt-8 border-t border-slate-200 dark:border-slate-800">
+                <div class="text-center max-w-3xl mx-auto mb-12 space-y-3">
+                    <span class="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">Estratégia de Execução</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white">Metodologias de Trabalho</h2>
+                </div>
+
+                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400 block mb-1">Passo 1</span>
+                        <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-1">Pesquisa & Análise</h4>
+                        <p class="text-xs text-slate-500">Estudo de soluções de mercado e escolha dos componentes eletrónicos.</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400 block mb-1">Passo 2</span>
+                        <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-1">Planeamento</h4>
+                        <p class="text-xs text-slate-500">Definição dos requisitos de hardware e arquitetura de comunicações.</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400 block mb-1">Passo 3</span>
+                        <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-1">Hardware Eletrónico</h4>
+                        <p class="text-xs text-slate-500">Montagem de protoboard, conexões de driver A4988 e sensores.</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400 block mb-1">Passo 4</span>
+                        <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-1">Desenvolvimento Mecânico</h4>
+                        <p class="text-xs text-slate-500">Corte do reservatório PVC e acoplamento do fuso helicoidal ao NEMA 17.</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400 block mb-1">Passo 5</span>
+                        <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-1">Programação ESP32</h4>
+                        <p class="text-xs text-slate-500">Desenvolvimento do firmware em C++/Arduino IDE e servidor Web/App.</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400 block mb-1">Passo 6</span>
+                        <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-1">Testes & Validação</h4>
+                        <p class="text-xs text-slate-500">Calibração da célula de carga HX711 e testes de fiabilidade de doseamento.</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400 block mb-1">Passo 7</span>
+                        <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-1">Melhorias & Otimização</h4>
+                        <p class="text-xs text-slate-500">Ajustes no fluxo da ração e refinamento estético da estrutura.</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400 block mb-1">Passo 8</span>
+                        <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-1">Documentação Final</h4>
+                        <p class="text-xs text-slate-500">Redação do relatório da PAP e preparação da defesa pública.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- MATERIAIS & RECURSOS (CATÁLOGO FILTRÁVEL) -->
+    <section id="materiais" class="py-16 bg-slate-100 dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-10 space-y-3">
+                <span class="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">Lista de Recursos</span>
+                <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white">Hardware, Mecânica e Equipamentos</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm">
+                    Todos os componentes discriminados no anteprojeto da PAP de Yuri Lira.
+                </p>
+            </div>
+
+            <!-- Botões de Filtro -->
+            <div class="flex flex-wrap items-center justify-center gap-2 mb-8" id="filter-container">
+                <button data-filter="all" class="btn-filter px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-sm">Todos</button>
+                <button data-filter="eletronica" class="btn-filter px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">Eletrónica & Controlo</button>
+                <button data-filter="sensores" class="btn-filter px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">Sensores & Atuadores</button>
+                <button data-filter="mecanica" class="btn-filter px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">Estrutura & Mecânica</button>
+            </div>
+
+            <!-- Grid de Cartões de Componentes -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="materials-grid">
+                
+                <!-- ESP32 -->
+                <div data-category="eletronica" class="material-card p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <span class="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400 tracking-wider">Processador Principal</span>
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white">Microcontrolador ESP32</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">Unidade central com conectividade Wi-Fi e Bluetooth integrada. Responsável por executar o servidor web e processar sensores.</p>
+                </div>
+
+                <!-- LCD 16x2 I2C -->
+                <div data-category="eletronica" class="material-card p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <span class="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400 tracking-wider">Interface Visual</span>
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white">Display LCD 16x2 I2C</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">Ecrã de 2 linhas e 16 caracteres com adaptador I2C (apenas 2 pinos de sinal SDA/SCL) para visualização local do estado e peso.</p>
+                </div>
+
+                <!-- NEMA 17 -->
+                <div data-category="sensores" class="material-card p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <span class="text-[10px] uppercase font-bold text-purple-600 dark:text-purple-400 tracking-wider">Atuador Mecânico</span>
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white">Motor de Passo NEMA 17</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">Motor de alta precisão de binário para acionamento do fuso helicoidal de distribuição de ração sem encravamentos.</p>
+                </div>
+
+                <!-- Driver A4988 -->
+                <div data-category="sensores" class="material-card p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <span class="text-[10px] uppercase font-bold text-purple-600 dark:text-purple-400 tracking-wider">Controlo de Potência</span>
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white">Driver de Motor A4988</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">Módulo de controlo microstepping para o NEMA 17, regulando corrente e garantindo movimento suave e silencioso.</p>
+                </div>
+
+                <!-- HC-SR04 -->
+                <div data-category="sensores" class="material-card p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <span class="text-[10px] uppercase font-bold text-purple-600 dark:text-purple-400 tracking-wider">Sensor de Distância</span>
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white">Sensor Ultrassónico HC-SR04</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">Instalado no topo do reservatório de PVC para medir a distância até à ração e calcular a percentagem de nível restante.</p>
+                </div>
+
+                <!-- Célula de Carga + HX711 -->
+                <div data-category="sensores" class="material-card p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <span class="text-[10px] uppercase font-bold text-purple-600 dark:text-purple-400 tracking-wider">Sensor de Peso</span>
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white">Célula de Carga 5kg + Módulo HX711</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">Posicionada sob o prato de alimentação para pesagem exata em gramas das porções servidas e controlo do consumo.</p>
+                </div>
+
+                <!-- Fonte 12V 5A -->
+                <div data-category="eletronica" class="material-card p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <span class="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400 tracking-wider">Alimentação Elétrica</span>
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white">Fonte Chaveada 12V 5A (Colmeia)</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">Fornece energia estável para o motor NEMA 17 e conversores de tensão para o ESP32 e circuitos auxiliares.</p>
+                </div>
+
+                <!-- Tubo PVC & Fuso -->
+                <div data-category="mecanica" class="material-card p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <span class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 tracking-wider">Estrutura Mecânica</span>
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white">Tubo PVC & Fuso Helicoidal de Jardim</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">Reservatório cilíndrico de alta capacidade acoplado a broca helicoidal de plástico para transporte dos grãos de ração.</p>
+                </div>
+
+                <!-- Ferramentas e Vários -->
+                <div data-category="mecanica" class="material-card p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <span class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 tracking-wider">Montagem & Apoio</span>
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white">Suportes, Cabos e Ferramentas</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">Parafusos, porcas, protoboard, ferro de soldar, multímetro e software Arduino IDE para programação.</p>
+                </div>
+
+            </div>
+
+            <!-- Resumo de Recursos Humanos, Físicos e Financeiros -->
+            <div class="mt-12 grid md:grid-cols-3 gap-6 pt-8 border-t border-slate-200 dark:border-slate-800">
+                <div class="p-5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                        👥 Recursos Humanos
+                    </h4>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">
+                        Aluno Yuri Lira (desenvolvimento), Eng.º Ismael Fernandes (orientação técnica) e apoio no laboratório da EPAVE.
+                    </p>
+                </div>
+
+                <div class="p-5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                        🏫 Recursos Físicos
+                    </h4>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">
+                        Laboratório de Eletrónica e Oficina de Montagem Mecânica da EPAVE para testes práticos do protótipo.
+                    </p>
+                </div>
+
+                <div class="p-5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                        💳 Recursos Financeiros
+                    </h4>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">
+                        Estimativa global entre 80€ e 180€, autofinanciada integralmente pelos executantes conforme regulamento.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- CALENDARIZAÇÃO & PROPOSTA DE ÍNDICE -->
+    <section id="cronograma" class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+            
+            <!-- Tabela Visual de Calendarização (Horas por Mês) -->
+            <div>
+                <div class="text-center max-w-3xl mx-auto mb-10 space-y-3">
+                    <span class="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">Planeamento Temporal</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white">Calendarização de Atividades (Horas)</h2>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm">Distribuição das tarefas ao longo do ano letivo (Outubro a Julho).</p>
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold uppercase border-b border-slate-200 dark:border-slate-700">
+                            <tr>
+                                <th class="p-3">Atividade / Fase</th>
+                                <th class="p-2 text-center">Out</th>
+                                <th class="p-2 text-center">Nov</th>
+                                <th class="p-2 text-center">Dez</th>
+                                <th class="p-2 text-center">Jan</th>
+                                <th class="p-2 text-center">Fev</th>
+                                <th class="p-2 text-center">Mar</th>
+                                <th class="p-2 text-center">Abr</th>
+                                <th class="p-2 text-center">Mai</th>
+                                <th class="p-2 text-center">Jun</th>
+                                <th class="p-2 text-center">Jul</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-slate-600 dark:text-slate-300">
+                            <tr>
+                                <td class="p-3 font-sans font-medium text-slate-900 dark:text-white">1. Pesquisa</td>
+                                <td class="p-2 text-center bg-blue-50 dark:bg-blue-950/40">4h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">1h</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-sans font-medium text-slate-900 dark:text-white">2. Planeamento</td>
+                                <td class="p-2 text-center bg-blue-50 dark:bg-blue-950/40">4h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">1h</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-sans font-medium text-slate-900 dark:text-white">3. Desenvolvimento</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center bg-blue-50 dark:bg-blue-950/40 font-bold text-blue-600">3h</td>
+                                <td class="p-2 text-center">2h</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-sans font-medium text-slate-900 dark:text-white">4. Desenvolv. Prático</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center bg-blue-50 dark:bg-blue-950/40 font-bold text-blue-600">3h</td>
+                                <td class="p-2 text-center bg-blue-50 dark:bg-blue-950/40 font-bold text-blue-600">3h</td>
+                                <td class="p-2 text-center bg-blue-50 dark:bg-blue-950/40 font-bold text-blue-600">3h</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-sans font-medium text-slate-900 dark:text-white">5. Recolha Materiais</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">1h</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-sans font-medium text-slate-900 dark:text-white">6. Pesquisa Inicial</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">1h</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-sans font-medium text-slate-900 dark:text-white">7 & 8. Relatório Escrito</td>
+                                <td class="p-2 text-center">4h</td>
+                                <td class="p-2 text-center bg-blue-50 dark:bg-blue-950/40 font-bold text-blue-600">5h</td>
+                                <td class="p-2 text-center bg-blue-50 dark:bg-blue-950/40 font-bold text-blue-600">5h</td>
+                                <td class="p-2 text-center">3h</td>
+                                <td class="p-2 text-center">4h</td>
+                                <td class="p-2 text-center">2h</td>
+                                <td class="p-2 text-center">4h</td>
+                                <td class="p-2 text-center">3h</td>
+                                <td class="p-2 text-center">3h</td>
+                                <td class="p-2 text-center">2h</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-sans font-medium text-slate-900 dark:text-white">9. Ajustes Finais</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">1h</td>
+                                <td class="p-2 text-center">1h</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Proposta de Índice Provável do Relatório -->
+            <div class="pt-8 border-t border-slate-200 dark:border-slate-800">
+                <div class="text-center max-w-3xl mx-auto mb-10 space-y-3">
+                    <span class="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">Estrutura Documental</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white">Proposta de Índice Provável</h2>
+                </div>
+
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center">01</span>
+                        <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">1. Introdução</span>
+                    </div>
+                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center">02</span>
+                        <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">2. Enquadramento Teórico</span>
+                    </div>
+                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center">03</span>
+                        <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">3. Análise de Requisitos</span>
+                    </div>
+                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center">04</span>
+                        <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">4. Arquitetura do Sistema</span>
+                    </div>
+                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center">05</span>
+                        <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">5. Desenvolv. do Hardware</span>
+                    </div>
+                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center">06</span>
+                        <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">6. Desenvolvimento Mecânico</span>
+                    </div>
+                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center">07</span>
+                        <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">7. Desenvolv. do Software</span>
+                    </div>
+                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center">08</span>
+                        <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">8. Integração do Sistema</span>
+                    </div>
+                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center">09</span>
+                        <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">9. Testes e Resultados</span>
+                    </div>
+                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center">10</span>
+                        <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">10. Conclusão</span>
+                    </div>
+                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center">11</span>
+                        <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">11. Bibliografia</span>
+                    </div>
+                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center">12</span>
+                        <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">12. Anexos</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- RODAPÉ INSTITUCIONAL -->
+    <footer class="mt-auto bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="space-y-3">
+                <span class="font-black text-xl text-white tracking-wider">EPAVE <span class="text-blue-500">• PAP 2026</span></span>
+                <p class="text-xs leading-relaxed">
+                    Escola Profissional do Alto Ave, E.M.<br>
+                    Curso Técnico de Eletrónica, Automação e Computadores (Triénio 2024 / 2027)
+                </p>
+            </div>
+            
+            <div class="space-y-2 text-xs">
+                <h4 class="text-sm font-bold text-white uppercase tracking-wider">Ficha de Ficheiro</h4>
+                <p><strong class="text-slate-200">Projeto:</strong> Alimentador Automático Inteligente para Animais</p>
+                <p><strong class="text-slate-200">Aluno Executante:</strong> Yuri Lira (N.º 3)</p>
+                <p><strong class="text-slate-200">Orientador Técnico:</strong> Eng.º Ismael Fernandes</p>
+            </div>
+
+            <div class="space-y-2 text-xs">
+                <h4 class="text-sm font-bold text-white uppercase tracking-wider">Localização & Data</h4>
+                <p>Póvoa de Lanhoso, Portugal</p>
+                <p>Apresentação do Anteprojeto: 29 de Abril de 2026</p>
+                <p class="text-[11px] text-slate-500 mt-2">Cofinanciado por Portugal 2030, União Europeia e EQAVET.</p>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 pt-6 border-t border-slate-800 text-center text-xs text-slate-500">
+            <p>&copy; 2026 Yuri Lira • Todos os direitos reservados. Projeto PAP de Eletrónica, Automação e Computadores.</p>
+        </div>
+    </footer>
+
+    <!-- LOGICA JAVASCRIPT COMPLETA -->
+    <script>
+        // --- 1. GESTÃO DE TEMA (LIGHT / DARK) ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+
+        function updateIcons(isDark) {
+            if (isDark) {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+        }
+
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            updateIcons(true);
+        } else {
+            document.documentElement.classList.remove('dark');
+            updateIcons(false);
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateIcons(isDark);
+        });
+
+        // --- 2. MENU MOBILE ---
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // --- 3. SIMULADOR DO ALIMENTADOR IOT ---
+        const sensorLevelInput = document.getElementById('sensor-level');
+        const sensorWeightInput = document.getElementById('sensor-weight');
+        const levelValText = document.getElementById('level-val');
+        const weightValText = document.getElementById('weight-val');
+        const lcdLine1 = document.getElementById('lcd-line1');
+        const lcdLine2 = document.getElementById('lcd-line2');
+        const btnFeedNow = document.getElementById('btn-feed-now');
+        const motorSpinner = document.getElementById('motor-spinner');
+        const motorStatusText = document.getElementById('motor-status-text');
+
+        function updateSimulatedState() {
+            const levelPercent = parseInt(sensorLevelInput.value);
+            const weightGrams = parseInt(sensorWeightInput.value);
+
+            // Converte % para cm aproximados (ex: 20cm reservatório vazio, 3cm reservatório cheio)
+            const distanceCm = Math.round(20 - (levelPercent * 0.17));
+
+            levelValText.textContent = `${levelPercent}% (${distanceCm} cm)`;
+            weightValText.textContent = `${weightGrams} gramas`;
+
+            // Atualiza Visor LCD 16x2
+            if (levelPercent < 15) {
+                lcdLine1.textContent = 'ALERTA: NIVEL BAIXO';
+                lcdLine2.textContent = `RAÇAO: ${levelPercent}% | ${weightGrams}g`;
+            } else {
+                lcdLine1.textContent = 'NEXUS PET: PRONTO';
+                lcdLine2.textContent = `RES: ${levelPercent}% | ${weightGrams}g`;
+            }
+        }
+
+        sensorLevelInput.addEventListener('input', updateSimulatedState);
+        sensorWeightInput.addEventListener('input', updateSimulatedState);
+
+        // Ação de Dispensar Ração (Motor NEMA 17 em rotação)
+        let isFeeding = false;
+        btnFeedNow.addEventListener('click', () => {
+            if (isFeeding) return;
+            isFeeding = true;
+
+            // Rotação visual no motor
+            motorSpinner.classList.add('animate-spin-slow', 'text-blue-600', 'dark:text-blue-400');
+            motorStatusText.textContent = 'NEMA 17 + A4988: GİRANDO...';
+            btnFeedNow.disabled = true;
+            btnFeedNow.classList.add('opacity-75');
+
+            lcdLine1.textContent = 'DISPENSANDO...';
+            lcdLine2.textContent = 'ROTAÇAO MOTOR NEMA';
+
+            setTimeout(() => {
+                // Atualiza contadores simulados
+                let currentWeight = parseInt(sensorWeightInput.value);
+                let currentLevel = parseInt(sensorLevelInput.value);
+
+                currentWeight = Math.min(500, currentWeight + 40);
+                currentLevel = Math.max(0, currentLevel - 5);
+
+                sensorWeightInput.value = currentWeight;
+                sensorLevelInput.value = currentLevel;
+
+                updateSimulatedState();
+
+                // Para animação
+                motorSpinner.classList.remove('animate-spin-slow', 'text-blue-600', 'dark:text-blue-400');
+                motorStatusText.textContent = 'NEMA 17 + Driver A4988: Parado';
+                btnFeedNow.disabled = false;
+                btnFeedNow.classList.remove('opacity-75');
+                isFeeding = false;
+            }, 2500);
+        });
+
+        // --- 4. FILTRAGEM DE MATERIAIS / COMPONENTES ---
+        const filterButtons = document.querySelectorAll('#filter-container .btn-filter');
+        const materialCards = document.querySelectorAll('#materials-grid .material-card');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const filter = button.getAttribute('data-filter');
+
+                // Atualiza estilo dos botões
+                filterButtons.forEach(btn => {
+                    btn.classList.remove('bg-blue-600', 'text-white');
+                    btn.classList.add('bg-white', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
+                });
+                button.classList.remove('bg-white', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
+                button.classList.add('bg-blue-600', 'text-white');
+
+                // Filtra cartões
+                materialCards.forEach(card => {
+                    if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+            });
+        });
+
+        // Inicializa estado do LCD
+        updateSimulatedState();
+    </script>
+</body>
+</html>
